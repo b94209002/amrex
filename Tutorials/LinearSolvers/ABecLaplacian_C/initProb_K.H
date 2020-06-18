@@ -80,7 +80,7 @@ void actual_init_abeclap (int i, int j, int k,
     amrex::Real dbdrfac = 1.;// (sigma-1.)/2./(tmp*tmp) * theta/r;
     dbdrfac *= b;
              
-    alpha(i,j,k) = 1.;
+    alpha(i,j,k) = 0.;
 
     exact(i,j,k) = std::cos(tpi*x) * std::cos(tpi*y) * std::cos(tpi*z)
            + .25 * std::cos(fpi*x) * std::cos(fpi*y) * std::cos(fpi*z);
