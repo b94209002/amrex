@@ -174,11 +174,17 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
 {
     BL_PROFILE("MLLinOp::defineGrids()");
 
+    Vector<Vector<Geometry> >   n_geom;
+
+
     m_num_amr_levels = a_geom.size();
 
     m_amr_ref_ratio.resize(m_num_amr_levels);
     m_num_mg_levels.resize(m_num_amr_levels);
 
+// MH testing
+
+    n_geom.resize(m_num_amr_levels);
     m_geom.resize(m_num_amr_levels);
     m_grids.resize(m_num_amr_levels);
     m_dmap.resize(m_num_amr_levels);
@@ -195,6 +201,9 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
     {
         m_num_mg_levels[amrlev] = 1;
         m_geom[amrlev].push_back(a_geom[amrlev]);
+// MH testing
+        n_geom[amrlev].push_back(a_geom[amrlev]);
+
         m_grids[amrlev].push_back(a_grids[amrlev]);
         m_dmap[amrlev].push_back(a_dmap[amrlev]);
         if (amrlev < a_factory.size()) {
@@ -215,6 +224,9 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
             ++(m_num_mg_levels[amrlev]);
 
             m_geom[amrlev].emplace_back(cdom, rb, coord, is_per);
+// MH testing
+            n_geom[amrlev].emplace_back(cdom, rb, coord, is_per);
+
 
             m_grids[amrlev].push_back(a_grids[amrlev]);
             AMREX_ASSERT(m_grids[amrlev].back().coarsenable(rr));
@@ -228,9 +240,12 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
         m_amr_ref_ratio[amrlev-1] = rr;
     }
 
+
     // coarsest amr level
     m_num_mg_levels[0] = 1;
     m_geom[0].push_back(a_geom[0]);
+// MH testing
+    n_geom[0].push_back(a_geom[0]);
     m_grids[0].push_back(a_grids[0]);
     m_dmap[0].push_back(a_dmap[0]);
     if (a_factory.size() > 0) {
@@ -268,6 +283,10 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
     bool agged = false;
     bool coned = false;
     int agg_lev, con_lev;
+
+
+    amrex::Print() << "do_agglomeration = " << info.do_agglomeration << std::endl;
+    amrex::Print() << "do_consolidation = " << info.do_consolidation << std::endl;
 
     if (info.do_agglomeration && aggable)
     {
@@ -370,7 +389,8 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
                and a_grids[0].coarsenable(rr, mg_box_min_width))
         {
             m_geom[0].emplace_back(amrex::coarsen(a_geom[0].Domain(),rr),rb,coord,is_per);
-            
+// MH testing 
+            n_geom[0].emplace_back(amrex::coarsen(a_geom[0].Domain(),rr),rb,coord,is_per);
             m_grids[0].push_back(a_grids[0]);
             m_grids[0].back().coarsen(rr);
 
@@ -390,11 +410,49 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
             else
             {
                 m_dmap[0].push_back(a_dmap[0]);
+
+		amrex::Print() << "rb = " << rb << std::endl;
+                amrex::Print() << "coord = " << coord << std::endl;
+                amrex::Print() << "isper = " << is_per[0] << ", " <<is_per[1] << ", "<< is_per[2] << std::endl;
+                amrex::Print() << "a_geom.Domain()" << a_geom[0].Domain() << std::endl; 
+                IntVect coarsening_ratio(AMREX_D_DECL(2,2,1));
+                amrex::Print() << "test coarsen" << amrex::coarsen(a_geom[0].Domain(),coarsening_ratio) << std::endl;
+                amrex::Print() << "No consolidation" << std::endl;
             }
             
             ++(m_num_mg_levels[0]);
             rr *= mg_coarsen_ratio;
         }
+/*
+        int rr_ver = rr/2;
+        IntVect rr_vec(AMREX_D_DECL(rr,rr,rr_ver));
+        while (m_num_mg_levels[0] < info.max_coarsening_level + 1
+               and a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width)
+               and a_grids[0].coarsenable(rr_vec, mg_box_min_width))
+        {
+            m_geom[0].emplace_back(amrex::coarsen(a_geom[0].Domain(),rr_vec),rb,coord,is_per);
+
+            n_geom[0].emplace_back(amrex::coarsen(a_geom[0].Domain(),rr_vec),rb,coord,is_per);
+            m_grids[0].push_back(a_grids[0]);
+            m_grids[0].back().coarsen(rr_vec);
+
+	    m_dmap[0].push_back(a_dmap[0]);
+            ++(m_num_mg_levels[0]);
+            rr *= mg_coarsen_ratio;
+            rr_vec[0] = rr; rr_vec[1] = rr;
+	}
+*/
+/*
+        amrex::Print() << "rr = " << rr << std::endl; 
+        amrex::Print() << " info.max_coarsening_level = " << info.max_coarsening_level << std::endl;
+	amrex::Print() << " a_geom[0].Domain().coarsenable(rr, mg_domain_min_width) = " << a_geom[0].Domain().coarsenable(rr, mg_domain_min_width) << std::endl;
+	IntVect rr_vec(AMREX_D_DECL(rr,rr,rr/2));
+        amrex::Print() << " a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width) = " << a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width) << std::endl;
+        amrex::Print() << "a_grids[0].coarsenable(rr_vec, mg_box_min_width) = " << a_grids[0].coarsenable(rr_vec, mg_box_min_width) << std::endl; 
+        n_geom[0].emplace_back(amrex::coarsen(a_geom[0].Domain(),rr_vec),rb,coord,is_per);
+        amrex::Print() << "n_geom.Domain()" << n_geom[0][3].Domain() << std::endl;    
+*/  
+ 
     }
 
     if (agged)
