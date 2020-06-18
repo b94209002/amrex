@@ -44,7 +44,7 @@ void actual_init_bcoef (int i, int j, int k,
     amrex::Real z = prob_lo[2] + dx[2] * (k + 0.5);
 
     amrex::Real r = std::sqrt((x-xc)*(x-xc) + (y-yc)*(y-yc) + (z-zc)*(z-zc));
-    beta(i,j,k) = (sigma-1.)/2.*std::tanh(theta*(r-0.25)) + (sigma+1.)/2.;
+    beta(i,j,k) = 1.;//(sigma-1.)/2.*std::tanh(theta*(r-0.25)) + (sigma+1.)/2.;
 }
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
@@ -77,7 +77,7 @@ void actual_init_abeclap (int i, int j, int k,
 
     amrex::Real r = std::sqrt((x-xc)*(x-xc) + (y-yc)*(y-yc) + (z-zc)*(z-zc));
     amrex::Real tmp = std::cosh(theta*(r-0.25));
-    amrex::Real dbdrfac = (sigma-1.)/2./(tmp*tmp) * theta/r;
+    amrex::Real dbdrfac = 1.;// (sigma-1.)/2./(tmp*tmp) * theta/r;
     dbdrfac *= b;
              
     alpha(i,j,k) = 1.;
