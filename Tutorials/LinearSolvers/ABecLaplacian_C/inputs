@@ -1,10 +1,10 @@
 
-max_level = 1
+max_level = 0
 ref_ratio = 2
 n_cell = 8
 max_grid_size = 32
 
-composite_solve = 1   # composite solve or level by level?
+composite_solve = 0   # composite solve or level by level?
 
 # In this tutorial, we set up two examples.
 # prob_type = 1

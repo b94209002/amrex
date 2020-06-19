@@ -417,7 +417,7 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
             rr *= mg_coarsen_ratio;
         }
 // semi-coarsing 
-
+/*
         int rr_ver = rr/2;
         IntVect rr_vec(AMREX_D_DECL(rr,rr,rr_ver));
 //        while (m_num_mg_levels[0] < info.max_coarsening_level + 1
@@ -435,7 +435,7 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
             rr *= mg_coarsen_ratio;
             rr_vec[0] = rr; rr_vec[1] = rr;
 	}
-
+*/
 /*
         amrex::Print() << "rr = " << rr << std::endl; 
         amrex::Print() << " info.max_coarsening_level = " << info.max_coarsening_level << std::endl;
