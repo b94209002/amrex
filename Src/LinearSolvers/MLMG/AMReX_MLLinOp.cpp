@@ -417,11 +417,12 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
             rr *= mg_coarsen_ratio;
         }
 // semi-coarsing 
+/*
         int rr_ver = rr/2;
         IntVect rr_vec(AMREX_D_DECL(rr,rr,rr_ver));
-//        while (m_num_mg_levels[0] < info.max_coarsening_level + 1
-//               and a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width)
-//               and a_grids[0].coarsenable(rr_vec, mg_box_min_width))
+        while (m_num_mg_levels[0] < info.max_coarsening_level + 1
+               and a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width)
+               and a_grids[0].coarsenable(rr_vec, mg_box_min_width))
         {
             m_geom[0].emplace_back(amrex::coarsen(a_geom[0].Domain(),rr_vec),rb,coord,is_per);
 
@@ -433,7 +434,13 @@ MLLinOp::defineGrids (const Vector<Geometry>& a_geom,
             ++(m_num_mg_levels[0]);
             rr *= mg_coarsen_ratio;
             rr_vec[0] = rr; rr_vec[1] = rr;
+        amrex::Print() << "m_num_mg_levels[0] = " << m_num_mg_levels[0] << std::endl;
+        amrex::Print() << "a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width) = " << a_geom[0].Domain().coarsenable(rr_vec, mg_domain_min_width) << std::endl;
+        amrex::Print() << "a_grids[0].coarsenable(rr_vec, mg_box_min_width) = " << a_grids[0].coarsenable(rr_vec, mg_box_min_width) << std::endl; 
+
+
 	}
+*/
 /*
         amrex::Print() << "rr = " << rr << std::endl; 
         amrex::Print() << " info.max_coarsening_level = " << info.max_coarsening_level << std::endl;
