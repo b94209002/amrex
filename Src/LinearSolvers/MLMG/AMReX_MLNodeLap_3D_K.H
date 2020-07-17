@@ -1326,7 +1326,7 @@ void mlndlap_gauss_seidel_with_line_solve_aa (Box const& bx, Array4<Real> const&
     {
         for (int j = lo.y; j <= hi.y; ++j)
         {
-            AMREX_PRAGMA_SIMD
+//            AMREX_PRAGMA_SIMD
             for (int k = lo.z; k <= hi.z; ++k)
             {
                 for (int i = lo.x; i <= hi.x; ++i)
@@ -1369,11 +1369,13 @@ void mlndlap_gauss_seidel_with_line_solve_aa (Box const& bx, Array4<Real> const&
                 		+ fm2xm2y4z*(sol(i,j,k-1)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j,k-1)+sig(i,j,k-1))
                            		   + sol(i,j,k+1)*(sig(i-1,j-1,k  )+sig(i,j-1,k  )+sig(i-1,j,k  )+sig(i,j,k  )));
 
-                                a_ls(k-lo.z) = f4xm2ym2z*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1)+sig(i-1,j-1,k)+sig(i-1,j,k));
-                                b_ls(k-lo.z) = s0;
-                                c_ls(k-lo.z) = f4xm2ym2z*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k));
-                                u_ls(k-lo.z) = 0.;
-                                r_ls(k-lo.z) = rhs(i,j,k) - Ax;
+                   	a_ls(i-lo.x) = f4xm2ym2z*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1)+sig(i-1,j-1,k)+sig(i-1,j,k));
+                        b_ls(i-lo.x) = s0;
+                        c_ls(i-lo.x) = f4xm2ym2z*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k));
+                        u_ls(i-lo.x) = 0.;
+                        r_ls(i-lo.x) = rhs(i,j,k) - Ax;
+                        amrex::Print() << "i,j,k = " << i <<", " << j << ", " << k << std::endl;
+                        amrex::Print() << "s0 = "<< sig(i-1,j-1,k-1) << "+" << sig(i,j-1,k-1)  << std::endl;
 
               	    }
            	}
@@ -1628,7 +1630,7 @@ void mlndlap_semi_interpadd_aa (int i, int j, int k, Array4<Real> const& fine,
 	        fine(i,j,k) += crse(ic,jc,kc);
             }
 	}
-    } else if (idir ==1 ){
+    } else if (idir == 1 ){
         if (!msk(i,j,k)) {
             int ic = amrex::coarsen(i,2);
             int jc = j;
