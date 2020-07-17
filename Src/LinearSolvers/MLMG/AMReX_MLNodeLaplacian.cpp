@@ -1485,7 +1485,6 @@ MLNodeLaplacian::Fsmooth (int amrlev, int mglev, MultiFab& sol, const MultiFab& 
 	if (amrlev == 0 and mglev > 0) 
     	{
             regular_coarsening = mg_coarsen_ratio_vec[mglev-1] == mg_coarsen_ratio;
-            amrex::Print() << "mglev = " << mglev << ", regular_coarsening = " << regular_coarsening << std::endl; 
         }
 
         constexpr int nsweeps = 2;
