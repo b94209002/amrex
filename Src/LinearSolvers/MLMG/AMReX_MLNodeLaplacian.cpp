@@ -1571,6 +1571,7 @@ MLNodeLaplacian::Fsmooth (int amrlev, int mglev, MultiFab& sol, const MultiFab& 
                                  );
                         }
 		    } else {
+			Gpu::LaunchSafeGuard lsg(false); 
 			for (int ns = 0; ns < nsweeps; ++ns) {
                             mlndlap_gauss_seidel_with_line_solve_aa(bx, solarr, rhsarr,
                                                                     sarr, dmskarr, dxinvarr
