@@ -1374,8 +1374,8 @@ void mlndlap_gauss_seidel_with_line_solve_aa (Box const& bx, Array4<Real> const&
                         c_ls(i-lo.x) = f4xm2ym2z*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k));
                         u_ls(i-lo.x) = 0.;
                         r_ls(i-lo.x) = rhs(i,j,k) - Ax;
-                        amrex::Print() << "i,j,k = " << i <<", " << j << ", " << k << std::endl;
-                        amrex::Print() << "s0 = "<< sig(i-1,j-1,k-1) << "+" << sig(i,j-1,k-1)  << std::endl;
+                        //amrex::Print() << "i,j,k = " << i <<", " << j << ", " << k << std::endl;
+                        // amrex::Print() << "s0 = "<< sig(i-1,j-1,k-1) << "+" << sig(i,j-1,k-1)  << std::endl;
 
               	    }
            	}
