@@ -752,10 +752,11 @@ MLNodeLaplacian::averageDownCoeffsSameAmrLevel (int amrlev)
                 const Box& bx = mfi.tilebox();
                 Array4<Real> const& cfab = pcrse->array(mfi);
                 Array4<Real const> const& ffab = fine.const_array(mfi);
+	
                 if (idim == 0) {
                     AMREX_HOST_DEVICE_PARALLEL_FOR_3D ( bx, i, j, k,
                     {
-                        mlndlap_avgdown_coeff_x(i,j,k,cfab,ffab);
+			mlndlap_avgdown_coeff_y(i,j,k,cfab,ffab);
                     });
                 } else if (idim == 1) {
 #if (AMREX_SPACEDIM >= 2)
@@ -772,6 +773,7 @@ MLNodeLaplacian::averageDownCoeffsSameAmrLevel (int amrlev)
                     });
 #endif
                 }
+		//amrex::Print() << "after" << " idim = " << idim << ",  sigma(0,0,0) = " << cfab(0,0,0) << std::endl;
             }
 
             if (need_parallel_copy) {
