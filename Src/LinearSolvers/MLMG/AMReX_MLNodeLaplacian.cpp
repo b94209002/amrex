@@ -746,7 +746,7 @@ MLNodeLaplacian::averageDownCoeffsSameAmrLevel (int amrlev)
             bool need_parallel_copy = !amrex::isMFIterSafe(crse, fine);
             MultiFab cfine;
             if (need_parallel_copy) {
-                const BoxArray& ba = amrex::coarsen(fine.boxArray(), 2);
+                const BoxArray& ba = amrex::coarsen(fine.boxArray(), ratio);
                 cfine.define(ba, fine.DistributionMap(), 1, 0);
             }
 
@@ -794,7 +794,7 @@ MLNodeLaplacian::averageDownCoeffsSameAmrLevel (int amrlev)
                     if (idir != 0) {
                         AMREX_HOST_DEVICE_PARALLEL_FOR_3D ( bx, i, j, k,
                         {
-                            mlndlap_avgdown_coeff_x(i,j,k,cfab,ffab);
+                            mlndlap_semi_avgdown_coeff_x(i,j,k,cfab,ffab);
                         });
                     } else {
 #if (AMREX_SPACEDIM >= 2)
@@ -1131,7 +1131,6 @@ MLNodeLaplacian::restriction (int amrlev, int cmglev, MultiFab& crse, MultiFab& 
             idir = 0;
         }
     }
-
 #ifdef _OPENMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif

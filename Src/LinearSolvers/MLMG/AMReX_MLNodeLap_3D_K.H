@@ -228,6 +228,20 @@ void mlndlap_avgdown_coeff_z (int i, int j, int k, Array4<Real> const& crse,
     crse(i,j,k) = 0.5*cl*cr/(cl+cr);
 }
 
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void mlndlap_semi_avgdown_coeff_x (int i, int j, int k, Array4<Real> const& crse,
+                              Array4<Real const> const& fine) noexcept
+{
+    Real a = fine(2*i  ,2*j,k) + fine(2*i  ,2*j+1,k);
+    Real b = fine(2*i+1,2*j,k) + fine(2*i+1,2*j+1,k);
+    if (a == 0 and b ==0) {
+        crse(i,j,k) = 1.0;
+    } else {
+        crse(i,j,k) = a*b/(a+b);
+    }
+}
+
+
 //
 // bc
 //
@@ -1215,7 +1229,7 @@ void mlndlap_gauss_seidel_with_line_solve_aa (Box const& bx, Array4<Real> const&
                     {
                         Real s0 = (-4.0)*fxyz*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j,k-1)+sig(i,j,k-1)   
                                              + sig(i-1,j-1,k  )+sig(i,j-1,k  )+sig(i-1,j,k  )+sig(i,j,k  ));
-
+/*
                         Real Ax = fxyz*(sol(i-1,j-1,k-1)*sig(i-1,j-1,k-1)
                                       + sol(i+1,j-1,k-1)*sig(i  ,j-1,k-1)
                                       + sol(i-1,j+1,k-1)*sig(i-1,j  ,k-1)
@@ -1240,13 +1254,97 @@ void mlndlap_gauss_seidel_with_line_solve_aa (Box const& bx, Array4<Real> const&
                                        + sol(i+1,j,k)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k)))
                             + fm2x4ym2z*(sol(i,j-1,k)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j-1,k)+sig(i,j-1,k))
                                        + sol(i,j+1,k)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1)+sig(i-1,j  ,k)+sig(i,j  ,k)));
-
+*/
+                        Real Ax;
+                        if ( k == lo.z) {
+                            Ax = fxyz*(sol(i-1,j-1,k+1)*sig(i-1,j-1,k-1)
+                                     + sol(i+1,j-1,k+1)*sig(i  ,j-1,k-1)
+                                     + sol(i-1,j+1,k+1)*sig(i-1,j  ,k-1)
+                                     + sol(i+1,j+1,k+1)*sig(i  ,j  ,k-1)
+                                     + sol(i-1,j-1,k+1)*sig(i-1,j-1,k  )
+                                     + sol(i+1,j-1,k+1)*sig(i  ,j-1,k  )
+                                     + sol(i-1,j+1,k+1)*sig(i-1,j  ,k  )
+                                     + sol(i+1,j+1,k+1)*sig(i  ,j  ,k  ))
+                           + fmx2y2z*(sol(i  ,j-1,k+1)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1))
+                                    + sol(i  ,j+1,k+1)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1))
+                                    + sol(i  ,j-1,k+1)*(sig(i-1,j-1,k  )+sig(i,j-1,k  ))
+                                    + sol(i  ,j+1,k+1)*(sig(i-1,j  ,k  )+sig(i,j  ,k  )))
+                           + f2xmy2z*(sol(i-1,j  ,k+1)*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1))
+                                    + sol(i+1,j  ,k+1)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1))
+                                    + sol(i-1,j  ,k+1)*(sig(i-1,j-1,k  )+sig(i-1,j,k  ))
+                                    + sol(i+1,j  ,k+1)*(sig(i  ,j-1,k  )+sig(i  ,j,k  )))
+                           + f2x2ymz*(sol(i-1,j-1,k  )*(sig(i-1,j-1,k-1)+sig(i-1,j-1,k))
+                                    + sol(i+1,j-1,k  )*(sig(i  ,j-1,k-1)+sig(i  ,j-1,k))
+                                    + sol(i-1,j+1,k  )*(sig(i-1,j  ,k-1)+sig(i-1,j  ,k))
+                                    + sol(i+1,j+1,k  )*(sig(i  ,j  ,k-1)+sig(i  ,j  ,k)))
+                           + f4xm2ym2z*(sol(i-1,j,k)*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1)+sig(i-1,j-1,k)+sig(i-1,j,k))
+                                      + sol(i+1,j,k)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k)))
+                           + fm2x4ym2z*(sol(i,j-1,k)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j-1,k)+sig(i,j-1,k))
+                                      + sol(i,j+1,k)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1)+sig(i-1,j  ,k)+sig(i,j  ,k)));
+                       } else if ( k == hi.z) {
+                            Ax = fxyz*(sol(i-1,j-1,k-1)*sig(i-1,j-1,k-1)
+                                     + sol(i+1,j-1,k-1)*sig(i  ,j-1,k-1)
+                                     + sol(i-1,j+1,k-1)*sig(i-1,j  ,k-1)
+                                     + sol(i+1,j+1,k-1)*sig(i  ,j  ,k-1)
+                                     + sol(i-1,j-1,k-1)*sig(i-1,j-1,k  )
+                                     + sol(i+1,j-1,k-1)*sig(i  ,j-1,k  )
+                                     + sol(i-1,j+1,k-1)*sig(i-1,j  ,k  )
+                                     + sol(i+1,j+1,k-1)*sig(i  ,j  ,k  ))
+                           + fmx2y2z*(sol(i  ,j-1,k-1)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1))
+                                    + sol(i  ,j+1,k-1)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1))
+                                    + sol(i  ,j-1,k-1)*(sig(i-1,j-1,k  )+sig(i,j-1,k  ))
+                                    + sol(i  ,j+1,k-1)*(sig(i-1,j  ,k  )+sig(i,j  ,k  )))
+                           + f2xmy2z*(sol(i-1,j  ,k-1)*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1))
+                                    + sol(i+1,j  ,k-1)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1))
+                                    + sol(i-1,j  ,k-1)*(sig(i-1,j-1,k  )+sig(i-1,j,k  ))
+                                    + sol(i+1,j  ,k-1)*(sig(i  ,j-1,k  )+sig(i  ,j,k  )))
+                           + f2x2ymz*(sol(i-1,j-1,k  )*(sig(i-1,j-1,k-1)+sig(i-1,j-1,k))
+                                    + sol(i+1,j-1,k  )*(sig(i  ,j-1,k-1)+sig(i  ,j-1,k))
+                                    + sol(i-1,j+1,k  )*(sig(i-1,j  ,k-1)+sig(i-1,j  ,k))
+                                    + sol(i+1,j+1,k  )*(sig(i  ,j  ,k-1)+sig(i  ,j  ,k)))
+                           + f4xm2ym2z*(sol(i-1,j,k)*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1)+sig(i-1,j-1,k)+sig(i-1,j,k))
+                                      + sol(i+1,j,k)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k)))
+                           + fm2x4ym2z*(sol(i,j-1,k)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j-1,k)+sig(i,j-1,k))
+                                      + sol(i,j+1,k)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1)+sig(i-1,j  ,k)+sig(i,j  ,k)));
+                       } else {
+                            Ax = fxyz*(sol(i-1,j-1,k-1)*sig(i-1,j-1,k-1)
+                                     + sol(i+1,j-1,k-1)*sig(i  ,j-1,k-1)
+                                     + sol(i-1,j+1,k-1)*sig(i-1,j  ,k-1)
+                                     + sol(i+1,j+1,k-1)*sig(i  ,j  ,k-1)
+                                     + sol(i-1,j-1,k+1)*sig(i-1,j-1,k  )
+                                     + sol(i+1,j-1,k+1)*sig(i  ,j-1,k  )
+                                     + sol(i-1,j+1,k+1)*sig(i-1,j  ,k  )
+                                     + sol(i+1,j+1,k+1)*sig(i  ,j  ,k  ))
+                           + fmx2y2z*(sol(i  ,j-1,k-1)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1))
+                                    + sol(i  ,j+1,k-1)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1))
+                                    + sol(i  ,j-1,k+1)*(sig(i-1,j-1,k  )+sig(i,j-1,k  ))
+                                    + sol(i  ,j+1,k+1)*(sig(i-1,j  ,k  )+sig(i,j  ,k  )))
+                           + f2xmy2z*(sol(i-1,j  ,k-1)*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1))
+                                    + sol(i+1,j  ,k-1)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1))
+                                    + sol(i-1,j  ,k+1)*(sig(i-1,j-1,k  )+sig(i-1,j,k  ))
+                                    + sol(i+1,j  ,k+1)*(sig(i  ,j-1,k  )+sig(i  ,j,k  )))
+                           + f2x2ymz*(sol(i-1,j-1,k  )*(sig(i-1,j-1,k-1)+sig(i-1,j-1,k))
+                                    + sol(i+1,j-1,k  )*(sig(i  ,j-1,k-1)+sig(i  ,j-1,k))
+                                    + sol(i-1,j+1,k  )*(sig(i-1,j  ,k-1)+sig(i-1,j  ,k))
+                                    + sol(i+1,j+1,k  )*(sig(i  ,j  ,k-1)+sig(i  ,j  ,k)))
+                           + f4xm2ym2z*(sol(i-1,j,k)*(sig(i-1,j-1,k-1)+sig(i-1,j,k-1)+sig(i-1,j-1,k)+sig(i-1,j,k))
+                                      + sol(i+1,j,k)*(sig(i  ,j-1,k-1)+sig(i  ,j,k-1)+sig(i  ,j-1,k)+sig(i  ,j,k)))
+                           + fm2x4ym2z*(sol(i,j-1,k)*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j-1,k)+sig(i,j-1,k))
+                                      + sol(i,j+1,k)*(sig(i-1,j  ,k-1)+sig(i,j  ,k-1)+sig(i-1,j  ,k)+sig(i,j  ,k)));
+                       }
                         a_ls(k-lo.z) = fm2xm2y4z*(sig(i-1,j-1,k-1)+sig(i,j-1,k-1)+sig(i-1,j,k-1)+sig(i,j,k-1));
                         b_ls(k-lo.z) = s0;
                         c_ls(k-lo.z) = fm2xm2y4z*(sig(i-1,j-1,k  )+sig(i,j-1,k  )+sig(i-1,j,k  )+sig(i,j,k  ));
                         u_ls(k-lo.z) = 0.;  
                         r_ls(k-lo.z) = rhs(i,j,k) - Ax;
-                    }
+                        if (k == lo.z) {
+//                        amrex::Print() << "rhs(" << i << "," << j << ",lo.z) = " << sig(i,j,k-1) << std::endl;
+                            c_ls(k-lo.z) *= 2.0;
+                        }
+                        if (k == hi.z) {
+                            a_ls(k-lo.z) *= 2.0;
+                        }
+		    }
                 }
                 tridiagonal_solve(a_ls, b_ls, c_ls, r_ls, u_ls, gam, ilen);
 
